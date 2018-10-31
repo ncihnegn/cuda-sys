@@ -1,2 +1,2 @@
 # cuda-sys
-CUDA bindings
+CUDA bindings for Rust
