@@ -1,4 +1,5 @@
 use std::ffi::CStr;
+use std::fmt;
 
 use num::FromPrimitive;
 
@@ -96,6 +97,17 @@ pub enum ComputeMode {
     ExclusiveProcess = 3,
 }
 
+pub struct ComputeCapabilityVersion {
+    pub major: i32,
+    pub minor: i32,
+}
+
+impl fmt::Debug for ComputeCapabilityVersion {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}.{:?}", self.major, self.minor)
+    }
+}
+
 #[derive(Debug)]
 pub struct DeviceProp {
     pub name: String,
@@ -109,8 +121,7 @@ pub struct DeviceProp {
     pub max_grid_size: [i32; 3],
     pub clock_rate: i32,
     pub total_const_mem: usize,
-    pub major: i32,
-    pub minor: i32,
+    pub version: ComputeCapabilityVersion,
     pub texture_alignment: usize,
     pub texture_pitch_alignment: usize,
     pub device_overlap: bool,
@@ -192,8 +203,10 @@ impl DeviceProp {
             max_grid_size: prop.maxGridSize,
             clock_rate: prop.clockRate,
             total_const_mem: prop.totalConstMem,
-            major: prop.major,
-            minor: prop.minor,
+            version: ComputeCapabilityVersion {
+                major: prop.major,
+                minor: prop.minor,
+            },
             texture_alignment: prop.textureAlignment,
             texture_pitch_alignment: prop.texturePitchAlignment,
             device_overlap: prop.deviceOverlap == 1,
