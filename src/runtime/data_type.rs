@@ -109,18 +109,18 @@ impl ErrorCode {
     pub fn check(c: u32) -> ErrorCode {
         match ErrorCode::from_u32(c) {
             Some(e) => e,
-            None => panic!("Unknown error code: {}", c)
+            None => panic!("Unknown error code: {}", c),
         }
     }
 }
 
 macro_rules! check_error {
-    ($ec: ident, $expr: expr) => (
+    ($ec: ident, $expr: expr) => {
         match $ec {
             ErrorCode::Success => Ok($expr),
-            _ => Err($ec)
+            _ => Err($ec),
         }
-        )
+    };
 }
 
 impl Default for cudaDeviceProp {
@@ -305,11 +305,10 @@ pub struct DeviceProp {
 impl DeviceProp {
     pub fn from(prop: &cudaDeviceProp) -> Self {
         DeviceProp {
-            name: unsafe {
-                CStr::from_ptr(&prop.name[0] as *const i8) }
-                    .to_str()
-                    .unwrap_or("")
-                    .to_owned(),
+            name: unsafe { CStr::from_ptr(&prop.name[0] as *const i8) }
+                .to_str()
+                .unwrap_or("")
+                .to_owned(),
             total_global_mem: prop.totalGlobalMem,
             shared_mem_per_block: prop.sharedMemPerBlock,
             regs_per_block: prop.regsPerBlock,
@@ -331,7 +330,8 @@ impl DeviceProp {
             kernel_exec_timeout_enabled: prop.kernelExecTimeoutEnabled == 1,
             integrated: prop.integrated == 1,
             can_map_host_memory: prop.canMapHostMemory == 1,
-            compute_mode: ComputeMode::from_i32(prop.computeMode).unwrap_or(ComputeMode::Prohibited),
+            compute_mode: ComputeMode::from_i32(prop.computeMode)
+                .unwrap_or(ComputeMode::Prohibited),
             max_texture1d: prop.maxTexture1D,
             max_texture1d_mipmap: prop.maxTexture1DMipmap,
             max_texture1d_linear: prop.maxTexture1DLinear,

@@ -24,8 +24,6 @@ pub fn set_device(id: i32) -> Result<(), ErrorCode> {
 
 pub fn get_device_prop(id: i32) -> Result<DeviceProp, ErrorCode> {
     let mut prop = cudaDeviceProp::default();
-    let e = ErrorCode::check(unsafe {
-        cudaGetDeviceProperties(&mut prop, id)
-    });
+    let e = ErrorCode::check(unsafe { cudaGetDeviceProperties(&mut prop, id) });
     check_error!(e, DeviceProp::from(&prop))
 }

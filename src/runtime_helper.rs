@@ -21,7 +21,8 @@ impl ComputeCapability {
 
 impl DeviceProp {
     fn performance(&self) -> i64 {
-        i64::from(self.version.num_cores() * self.multi_processor_count) * i64::from(self.clock_rate)
+        i64::from(self.version.num_cores() * self.multi_processor_count)
+            * i64::from(self.clock_rate)
     }
 }
 
@@ -51,9 +52,10 @@ mod tests {
     fn find_best_gpu() {
         let fastest = fastest_device_id();
         let device_count = get_device_count().unwrap_or(0);
-        fastest.map(|x|
+        fastest.map(|x| {
             for i in 0..device_count {
                 assert!(performance(i) <= performance(x));
-            });
+            }
+        });
     }
 }
