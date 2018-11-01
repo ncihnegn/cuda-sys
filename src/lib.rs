@@ -4,6 +4,7 @@ extern crate num_derive;
 extern crate num_traits;
 
 pub mod runtime;
+pub mod runtime_helper;
 
 #[cfg(test)]
 mod tests {

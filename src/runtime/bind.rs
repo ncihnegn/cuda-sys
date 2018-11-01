@@ -5906,7 +5906,8 @@ fn bindgen_test_layout_cudaExternalSemaphoreSignalParams__bindgen_ty_1__bindgen_
     assert_eq!(
         unsafe {
             &(*(::std::ptr::null::<cudaExternalSemaphoreSignalParams__bindgen_ty_1__bindgen_ty_1>(
-            ))).value as *const _ as usize
+            )))
+            .value as *const _ as usize
         },
         0usize,
         concat!(

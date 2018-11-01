@@ -1,9 +1,127 @@
+#![warn(clippy::useless_attribute)]
+
 use std::ffi::CStr;
 use std::fmt;
 
 use num::FromPrimitive;
 
 use super::bind::*;
+
+#[repr(u32)]
+#[derive(Debug, FromPrimitive, PartialEq)]
+pub enum ErrorCode {
+    Success = 0,
+    MissingConfiguration = 1,
+    MemoryAllocation = 2,
+    InitializationError = 3,
+    LaunchFailure = 4,
+    PriorLaunchFailure = 5,
+    LaunchTimeout = 6,
+    LaunchOutOfResources = 7,
+    InvalidDeviceFunction = 8,
+    InvalidConfiguration = 9,
+    InvalidDevice = 10,
+    InvalidValue = 11,
+    InvalidPitchValue = 12,
+    InvalidSymbol = 13,
+    MapBufferObjectFailed = 14,
+    UnmapBufferObjectFailed = 15,
+    InvalidHostPointer = 16,
+    InvalidDevicePointer = 17,
+    InvalidTexture = 18,
+    InvalidTextureBinding = 19,
+    InvalidChannelDescriptor = 20,
+    InvalidMemcpyDirection = 21,
+    AddressOfConstant = 22,
+    TextureFetchFailed = 23,
+    TextureNotBound = 24,
+    SynchronizationError = 25,
+    InvalidFilterSetting = 26,
+    InvalidNormSetting = 27,
+    MixedDeviceExecution = 28,
+    CudartUnloading = 29,
+    Unknown = 30,
+    NotYetImplemented = 31,
+    MemoryValueTooLarge = 32,
+    InvalidResourceHandle = 33,
+    NotReady = 34,
+    InsufficientDriver = 35,
+    SetOnActiveProcess = 36,
+    InvalidSurface = 37,
+    NoDevice = 38,
+    ECCUncorrectable = 39,
+    SharedObjectSymbolNotFound = 40,
+    SharedObjectInitFailed = 41,
+    UnsupportedLimit = 42,
+    DuplicateVariableName = 43,
+    DuplicateTextureName = 44,
+    DuplicateSurfaceName = 45,
+    DevicesUnavailable = 46,
+    InvalidKernelImage = 47,
+    NoKernelImageForDevice = 48,
+    IncompatibleDriverContext = 49,
+    PeerAccessAlreadyEnabled = 50,
+    PeerAccessNotEnabled = 51,
+    DeviceAlreadyInUse = 54,
+    ProfilerDisabled = 55,
+    ProfilerNotInitialized = 56,
+    ProfilerAlreadyStarted = 57,
+    ProfilerAlreadyStopped = 58,
+    Assert = 59,
+    TooManyPeers = 60,
+    HostMemoryAlreadyRegistered = 61,
+    HostMemoryNotRegistered = 62,
+    OperatingSystem = 63,
+    PeerAccessUnsupported = 64,
+    LaunchMaxDepthExceeded = 65,
+    LaunchFileScopedTex = 66,
+    LaunchFileScopedSurf = 67,
+    SyncDepthExceeded = 68,
+    LaunchPendingCountExceeded = 69,
+    NotPermitted = 70,
+    NotSupported = 71,
+    HardwareStackError = 72,
+    IllegalInstruction = 73,
+    MisalignedAddress = 74,
+    InvalidAddressSpace = 75,
+    InvalidPc = 76,
+    IllegalAddress = 77,
+    InvalidPtx = 78,
+    InvalidGraphicsContext = 79,
+    NvlinkUncorrectable = 80,
+    JitCompilerNotFound = 81,
+    CooperativeLaunchTooLarge = 82,
+    SystemNotReady = 83,
+    IllegalState = 84,
+    StartupFailure = 127,
+    StreamCaptureUnsupported = 900,
+    StreamCaptureInvalidated = 901,
+    StreamCaptureMerge = 902,
+    StreamCaptureUnmatched = 903,
+    StreamCaptureUnjoined = 904,
+    StreamCaptureIsolation = 905,
+    StreamCaptureImplicit = 906,
+    CapturedEvent = 907,
+    ApiFailureBase = 10000,
+}
+
+impl ErrorCode {
+    pub fn check(c: u32) -> ErrorCode {
+        match ErrorCode::from_u32(c) {
+            Some(e) => e,
+            None => panic!("Unknown error code: {}", c)
+        }
+    }
+}
+
+macro_rules! check_error {
+    ($ec: ident, $expr: expr) => (
+        match $ec {
+            ErrorCode::Success => Ok($expr),
+            _ => Err($ec)
+        }
+        )
+}
 
 impl Default for cudaDeviceProp {
     fn default() -> cudaDeviceProp {
@@ -89,7 +207,7 @@ impl Default for cudaDeviceProp {
 }
 
 #[repr(i32)]
-#[derive(Debug, FromPrimitive)]
+#[derive(Debug, FromPrimitive, PartialEq)]
 pub enum ComputeMode {
     Default = 0,
     Exclusive = 1,
@@ -97,12 +215,12 @@ pub enum ComputeMode {
     ExclusiveProcess = 3,
 }
 
-pub struct ComputeCapabilityVersion {
+pub struct ComputeCapability {
     pub major: i32,
     pub minor: i32,
 }
 
-impl fmt::Debug for ComputeCapabilityVersion {
+impl fmt::Debug for ComputeCapability {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?}.{:?}", self.major, self.minor)
     }
@@ -121,7 +239,7 @@ pub struct DeviceProp {
     pub max_grid_size: [i32; 3],
     pub clock_rate: i32,
     pub total_const_mem: usize,
-    pub version: ComputeCapabilityVersion,
+    pub version: ComputeCapability,
     pub texture_alignment: usize,
     pub texture_pitch_alignment: usize,
     pub device_overlap: bool,
@@ -188,11 +306,10 @@ impl DeviceProp {
     pub fn from(prop: &cudaDeviceProp) -> Self {
         DeviceProp {
             name: unsafe {
-                CStr::from_ptr(&prop.name[0] as *const i8)
+                CStr::from_ptr(&prop.name[0] as *const i8) }
                     .to_str()
-                    .unwrap()
-                    .to_owned()
-            },
+                    .unwrap_or("")
+                    .to_owned(),
             total_global_mem: prop.totalGlobalMem,
             shared_mem_per_block: prop.sharedMemPerBlock,
             regs_per_block: prop.regsPerBlock,
@@ -203,7 +320,7 @@ impl DeviceProp {
             max_grid_size: prop.maxGridSize,
             clock_rate: prop.clockRate,
             total_const_mem: prop.totalConstMem,
-            version: ComputeCapabilityVersion {
+            version: ComputeCapability {
                 major: prop.major,
                 minor: prop.minor,
             },
@@ -214,7 +331,7 @@ impl DeviceProp {
             kernel_exec_timeout_enabled: prop.kernelExecTimeoutEnabled == 1,
             integrated: prop.integrated == 1,
             can_map_host_memory: prop.canMapHostMemory == 1,
-            compute_mode: ComputeMode::from_i32(prop.computeMode).unwrap(),
+            compute_mode: ComputeMode::from_i32(prop.computeMode).unwrap_or(ComputeMode::Prohibited),
             max_texture1d: prop.maxTexture1D,
             max_texture1d_mipmap: prop.maxTexture1DMipmap,
             max_texture1d_linear: prop.maxTexture1DLinear,
@@ -270,5 +387,15 @@ impl DeviceProp {
                 == 1,
             direct_managed_mem_access_from_host: prop.directManagedMemAccessFromHost == 1,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn error_code() {
+        assert_eq!(ErrorCode::from_u32(0), Some(ErrorCode::Success));
     }
 }

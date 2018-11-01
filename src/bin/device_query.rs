@@ -3,7 +3,7 @@ extern crate cuda_sys;
 use cuda_sys::runtime::*;
 
 fn main() {
-    let device_count = get_device_count();
+    let device_count = get_device_count().unwrap_or(0);
     println!("Device count: {}", device_count);
     for i in 0..device_count {
         let prop = get_device_prop(i);
