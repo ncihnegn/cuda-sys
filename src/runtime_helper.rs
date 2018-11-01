@@ -1,29 +1,31 @@
 use super::runtime::data_type::*;
 use super::runtime::*;
 
-fn num_cores(ver: &ComputeCapability) -> i32 {
-    match ver.major {
-        3 => 192,
-        5 => 128,
-        6 => {
-            if ver.minor == 0 {
-                64
-            } else {
-                128
+impl ComputeCapability {
+    fn num_cores(&self) -> i32 {
+        match self.major {
+            3 => 192,
+            5 => 128,
+            6 => {
+                if self.minor == 0 {
+                    64
+                } else {
+                    128
+                }
             }
+            7 => 64,
+            _ => panic!("Unknown ComputeCapability {:?}", self),
         }
-        7 => 64,
-        _ => panic!("Unknown ComputeCapability {:?}", ver),
     }
 }
 
 impl DeviceProp {
-    pub fn performance(&self) -> i64 {
-        i64::from(num_cores(&self.version) * self.multi_processor_count) * i64::from(self.clock_rate)
+    fn performance(&self) -> i64 {
+        i64::from(self.version.num_cores() * self.multi_processor_count) * i64::from(self.clock_rate)
     }
 }
 
-fn performance(id: i32) -> i64 {
+pub fn performance(id: i32) -> i64 {
     get_device_prop(id).map(|p| p.performance()).unwrap_or(0)
 }
 
