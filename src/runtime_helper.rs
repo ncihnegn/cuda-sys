@@ -32,7 +32,6 @@ pub fn performance(id: i32) -> i64 {
 
 pub fn fastest_device_id() -> Option<i32> {
     let device_count = get_device_count().unwrap_or(0);
-    println!("Device count: {}", device_count);
     (0..device_count)
         .map(get_device_prop)
         .enumerate()
@@ -42,6 +41,13 @@ pub fn fastest_device_id() -> Option<i32> {
         .map(|(i, p)| (i, p.performance()))
         .max_by_key(|&(_, perf)| perf)
         .map(|(i, _)| i as i32)
+}
+
+pub fn integrated_device_id() -> Option<i32> {
+    let device_count = get_device_count().unwrap_or(0);
+    (0..device_count)
+        .find(|&i| get_device_prop(i).map(|p| p.integrated) == Ok(true))
+        .map(|i| i as i32)
 }
 
 #[cfg(test)]
@@ -57,5 +63,11 @@ mod tests {
                 assert!(performance(i) <= performance(x));
             }
         });
+    }
+
+    #[test]
+    fn find_integrated_gpu() {
+        let integrated = integrated_device_id();
+        assert!(integrated.map(|id| get_device_prop(id)).map(|r| r.map(|p| p.integrated)) != Some(Ok(false)));
     }
 }
