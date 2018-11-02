@@ -215,17 +215,6 @@ pub enum ComputeMode {
     ExclusiveProcess = 3,
 }
 
-pub struct ComputeCapability {
-    pub major: i32,
-    pub minor: i32,
-}
-
-impl fmt::Debug for ComputeCapability {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}.{:?}", self.major, self.minor)
-    }
-}
-
 #[derive(Debug)]
 pub struct DeviceProp {
     pub name: String,
@@ -239,7 +228,7 @@ pub struct DeviceProp {
     pub max_grid_size: [i32; 3],
     pub clock_rate: i32,
     pub total_const_mem: usize,
-    pub version: ComputeCapability,
+    pub version: Version,
     pub texture_alignment: usize,
     pub texture_pitch_alignment: usize,
     pub device_overlap: bool,
@@ -319,7 +308,7 @@ impl DeviceProp {
             max_grid_size: prop.maxGridSize,
             clock_rate: prop.clockRate,
             total_const_mem: prop.totalConstMem,
-            version: ComputeCapability {
+            version: Version {
                 major: prop.major,
                 minor: prop.minor,
             },
@@ -386,6 +375,26 @@ impl DeviceProp {
                 .pageableMemoryAccessUsesHostPageTables
                 == 1,
             direct_managed_mem_access_from_host: prop.directManagedMemAccessFromHost == 1,
+        }
+    }
+}
+
+pub struct Version {
+    pub major: i32,
+    pub minor: i32,
+}
+
+impl fmt::Debug for Version {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}.{:?}", self.major, self.minor)
+    }
+}
+
+impl Version {
+    pub fn from_i32(v: i32) -> Version {
+        Version {
+            major: v / 1000,
+            minor: (v % 1000) / 10,
         }
     }
 }

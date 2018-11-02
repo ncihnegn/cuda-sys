@@ -27,3 +27,24 @@ pub fn get_device_prop(id: i32) -> Result<DeviceProp, ErrorCode> {
     let e = ErrorCode::check(unsafe { cudaGetDeviceProperties(&mut prop, id) });
     check_error!(e, DeviceProp::from(&prop))
 }
+
+pub enum Component {
+    Driver,
+    Runtime,
+}
+
+pub fn get_version(d: &Component) -> Result<Version, ErrorCode> {
+    let mut version: i32 = 0;
+    let e = ErrorCode::check(match d {
+        Component::Driver => unsafe { cudaDriverGetVersion(&mut version) },
+        Component::Runtime => unsafe { cudaRuntimeGetVersion(&mut version) },
+    });
+    check_error!(e, Version::from_i32(version))
+}
+pub fn driver_get_version() -> Result<Version, ErrorCode> {
+    get_version(&Component::Driver)
+}
+
+pub fn runtime_get_version() -> Result<Version, ErrorCode> {
+    get_version(&Component::Runtime)
+}

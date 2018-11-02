@@ -1,7 +1,7 @@
 use super::runtime::data_type::*;
 use super::runtime::*;
 
-impl ComputeCapability {
+impl Version {
     fn num_cores(&self) -> i32 {
         match self.major {
             3 => 192,
@@ -14,7 +14,7 @@ impl ComputeCapability {
                 }
             }
             7 => 64,
-            _ => panic!("Unknown ComputeCapability {:?}", self),
+            _ => panic!("Unknown Compute Capability {:?}", self),
         }
     }
 }
