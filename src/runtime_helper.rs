@@ -35,11 +35,9 @@ pub fn fastest_device_id() -> Option<i32> {
     (0..device_count)
         .map(get_device_prop)
         .enumerate()
-        .filter(|&(_, ref r)| r.is_ok())
-        .map(|(i, r)| (i, r.unwrap()))
+        .filter_map(|(i, r)| r.ok().map(|p| (i, p)))
         .filter(|&(_, ref p)| p.compute_mode != ComputeMode::Prohibited)
-        .map(|(i, p)| (i, p.performance()))
-        .max_by_key(|&(_, perf)| perf)
+        .max_by_key(|&(_, ref p)| p.performance())
         .map(|(i, _)| i as i32)
 }
 
@@ -67,7 +65,10 @@ mod tests {
 
     #[test]
     fn find_integrated_gpu() {
-        let integrated = integrated_device_id();
-        assert!(integrated.map(|id| get_device_prop(id)).map(|r| r.map(|p| p.integrated)) != Some(Ok(false)));
+        let id = integrated_device_id();
+        assert_ne!(
+            id.map(get_device_prop).map(|r| r.map(|p| p.integrated)),
+            Some(Ok(false))
+        );
     }
 }
