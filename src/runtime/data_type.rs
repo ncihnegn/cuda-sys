@@ -115,10 +115,10 @@ impl ErrorCode {
 }
 
 macro_rules! check_error {
-    ($ec: ident, $expr: expr) => {
-        match $ec {
-            ErrorCode::Success => Ok($expr),
-            _ => Err($ec),
+    ($ec: expr, $ret: expr) => {
+        match ErrorCode::check($ec) {
+            ErrorCode::Success => Ok($ret),
+            _ => Err(ErrorCode::check($ec)),
         }
     };
 }
@@ -399,6 +399,16 @@ impl Version {
     }
 }
 
+#[repr(u32)]
+#[derive(ToPrimitive)]
+pub enum MemcpyKind {
+    HostToHost = 0,
+    HostToDevice = 1,
+    DeviceToHost = 2,
+    DeviceToDevice = 3,
+    Default = 4,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -406,5 +416,10 @@ mod tests {
     #[test]
     fn error_code() {
         assert_eq!(ErrorCode::from_u32(0), Some(ErrorCode::Success));
+    }
+
+    #[test]
+    fn memcpy_kind() {
+        assert_eq!(MemcpyKind::Default.to_u32(), Some(4));
     }
 }
