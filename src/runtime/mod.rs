@@ -81,4 +81,12 @@ mod tests {
     fn malloc_test() {
         assert!(malloc(1).is_ok(),);
     }
+
+    #[test]
+    fn memcpy_test() {
+        let count = 1;
+        let dptr0 = malloc(count).unwrap();
+        let dptr1 = malloc(count).unwrap();
+        assert!(unsafe { memcpy(&mut *dptr1, &*dptr0, count, &MemcpyKind::Default).is_ok() });
+    }
 }

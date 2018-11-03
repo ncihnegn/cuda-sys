@@ -411,6 +411,8 @@ pub enum MemcpyKind {
 
 #[cfg(test)]
 mod tests {
+    use num::ToPrimitive;
+
     use super::*;
 
     #[test]
