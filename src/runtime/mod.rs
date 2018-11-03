@@ -33,7 +33,7 @@ pub enum Component {
     Runtime,
 }
 
-pub fn get_version(d: &Component) -> Result<Version, ErrorCode> {
+fn get_version(d: &Component) -> Result<Version, ErrorCode> {
     let mut version: i32 = 0;
     let e = ErrorCode::check(match d {
         Component::Driver => unsafe { cudaDriverGetVersion(&mut version) },
