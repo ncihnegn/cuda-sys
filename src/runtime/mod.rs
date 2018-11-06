@@ -83,10 +83,12 @@ mod tests {
     }
 
     #[test]
-    fn memcpy_test() {
+    fn memcpy_d2d_test() {
         let count = 1;
         let dptr0 = malloc(count).unwrap();
         let dptr1 = malloc(count).unwrap();
-        assert!(unsafe { memcpy(&mut *dptr1, &*dptr0, count, &MemcpyKind::Default).is_ok() });
+        let dref0 = unsafe { &mut *dptr0 };
+        let dref1 = unsafe { &*dptr1 };
+        assert!(memcpy(dref0, dref1, count, &MemcpyKind::Default).is_ok());
     }
 }
